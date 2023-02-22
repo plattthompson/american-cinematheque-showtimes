@@ -50,12 +50,10 @@ THEATER_CODES = {
 	'other': 68
 }
 
-# Showtimes will change color as they approach and become gradually more red.
-# Once the time has passed, they will be completely red.
+# Showtimes will change color as they approach and gradually become more red.
+# Once the time has passed, they will be grayed out.
 # This also gives a more implicit understanding of AM and PM since the times are in twelve hour format
 # and there's no room for an AM/PM suffix.
-# Dev note: #FF3333 is probably the furthest we want to go without being too aggressively red (maybe FF2222)
-# TODO: Gray out the showtimes instead of red?
 SHOWTIME_COLORS = {
 	0: '#FF3333',
 	1: '#FF4444',
@@ -203,7 +201,7 @@ def main(config):
 									font = "tom-thumb",
 									color = SHOWTIME_COLORS.get(
 										(int(time.parse_time(movie['event_start_time'], "15:04:05").hour) - current_time.hour),
-										"#FF2222"
+										"#222222"
 									)
 								) for movie in movie_list
 							]
