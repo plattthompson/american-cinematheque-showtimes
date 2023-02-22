@@ -50,7 +50,12 @@ THEATER_CODES = {
 	'other': 68
 }
 
-# FF3333 is probably the furthest we want to go without being too aggressively red (maybe FF2222)
+# Showtimes will change color as they approach and become gradually more red.
+# Once the time has passed, they will be completely red.
+# This also gives a more implicit understanding of AM and PM since the times are in twelve hour format
+# and there's no room for an AM/PM suffix.
+# Dev note: #FF3333 is probably the furthest we want to go without being too aggressively red (maybe FF2222)
+# TODO: Gray out the showtimes instead of red?
 SHOWTIME_COLORS = {
 	0: '#FF3333',
 	1: '#FF4444',
