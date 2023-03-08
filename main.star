@@ -1,4 +1,5 @@
 load("render.star", "render")
+load("schema.star", "schema")
 load("time.star", "time")
 load("http.star", "http")
 load("cache.star", "cache")
@@ -90,7 +91,7 @@ MINUTE_IN_SECONDS = 60
 #                                    HELPERS                                   #
 # ---------------------------------------------------------------------------- #
 
-# TODO: BUILD HELPER FUNCTIONS
+# TODO: REFACTOR INTO HELPER FUNCTIONS
 
 # def find_hours_until_movie():
 
@@ -150,6 +151,7 @@ def main(config):
 	seconds_since_midnight = hours_to_seconds + minutes_to_seconds + seconds
 
 	# The AmCin API requires you to query the current day's showtimes using the previous day's Unix timestamps for some reason
+	# TODO: Rename variables?
 	beginning_of_current_day_unix = current_time.unix - seconds_since_midnight - DAY_IN_SECONDS
 	end_of_current_day_unix = current_time.unix - seconds_since_midnight
 
@@ -230,15 +232,28 @@ def main(config):
 		)
 	)
 
-# def get_schema():
-# 	return schema.Schema(
-# 		version = "1",
-# 		fields = [
-# 			schema.Location(
-# 				id = "location",
-# 				name = "Location",
-# 				desc = "Location for which to display time.",
-# 				icon = "locationDot",
-# 			)
-# 		]
-# 	)
+def get_schema():
+	options = [
+		schema.Option(
+			display = "Los Feliz 3",
+			value = "Los Feliz 3"
+		),
+		schema.Option(
+			display = "Aero Theatre",
+			value = "Aero Theatre"
+		)
+	]
+
+	return schema.Schema(
+		version = "1",
+		fields = [
+			schema.Dropdown(
+				id = "theater",
+				name = "Theater",
+				desc = "Theater for which to display showtimes.",
+				icon = "film",
+				default = options[0].value,
+				options = options
+			)
+		]
+	)
