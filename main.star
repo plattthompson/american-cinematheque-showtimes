@@ -9,46 +9,14 @@ load("encoding/base64.star", "base64")
 #                                   CONSTANTS                                  #
 # ---------------------------------------------------------------------------- #
 
-# Test data
-# all_locations_movie_list = [
-# 	{
-# 		'title': 'Raging Bull',
-# 		'event_start_date_unix': 1674153800,
-# 		'event_end_date_unix': 1674153800,
-# 		'event_start_time': "22:00:00",
-# 		'event_location': [54]
-# 	},
-# 	{
-# 		'title': 'Goodfellas',
-# 		'event_start_date_unix': 1674118700,
-# 		'event_end_date_unix': 1674118700,
-# 		'event_start_time': "12:15:00",
-# 		'event_location': [102]
-# 	},
-# 	{
-# 		'title': 'Taxi Driver',
-# 		'event_start_date_unix': 1674116000,
-# 		'event_end_date_unix': 1674116000,
-# 		'event_start_time': "11:30:00",
-# 		'event_location': [102]
-# 	},
-# 	{
-# 		'title': 'The Irishman',
-# 		'event_start_date_unix': 1674145700,
-# 		'event_end_date_unix': 1674145700,
-# 		'event_start_time': "19:45:00",
-# 		'event_location': [102]
-# 	},
-# ]
-
 CAMERA_ICON = base64.decode("iVBORw0KGgoAAAANSUhEUgAAABUAAAAXCAYAAADk3wSdAAAAAXNSR0IArs4c6QAAAR1JREFUSEtjZGBgYFAwrPsPokEgszoMTJeH6DASkoPpQacZkQ1EN3h66yoMfeiWYjMYq6HqJppgtTfPXMfQA5PbOTsS7JMhbih6ZKB7DznMifE6yDyc4YIrvGDiIMsWrSokPkzRVd6/v43BI7QYLgyLQJChgQ5RcHFeMVMGkBg49j+/Oo3TYSCFIG9jSwmg5NWVX8qw/sAysOEgtSAxuKEgAXQAsowYQ0284hjObFuE3VBkF4MMI9ZQmGOwuhSfoci+gAUFzPtUMRSW22BZFmveh3kTX5jiikls2ZXo2CfZUEIJHZaTsKnD6lJkhcLSnvByFST+9ul2snIciiZkQ0HJ48H5pkFuKCWuxCilYMUcKGLwleyEIhYlzAa1oQARYMFWHZmc4wAAAABJRU5ErkJggg==")
 
 CINEMATHEQUE_SHOWTIMES_URL = "https://www.americancinematheque.com/wp-json/wp/v2/algolia_get_events?environment=production&startDate={start_time}&endDate={end_time}"
 
 THEATER_CODES = {
-	'los feliz 3': 102,
-	'aero theatre': 54,
-	'other': 68
+	"los feliz 3": 102,
+	"aero theatre": 54,
+	"other": 68
 }
 
 # Showtimes will change color as they approach and gradually become more red.
@@ -56,55 +24,66 @@ THEATER_CODES = {
 # This also gives a more implicit understanding of AM and PM since the times are in twelve hour format
 # and there's no room for an AM/PM suffix.
 SHOWTIME_COLORS = {
-	0: '#FF3333',
-	1: '#FF4444',
-	2: '#FF5555',
-	3: '#FF6666',
-	4: '#FF7777',
-	5: '#FF8888',
-	6: '#FF9999',
-	7: '#FFAAAA',
-	8: '#FFBBBB',
-	9: '#FFCCCC',
-	10: '#FFDDDD',
-	11: '#FFEEEE',
-	12: '#FFFFFF',
-	13: '#FFFFFF',
-	14: '#FFFFFF',
-	15: '#FFFFFF',
-	16: '#FFFFFF',
-	17: '#FFFFFF',
-	18: '#FFFFFF',
-	19: '#FFFFFF',
-	20: '#FFFFFF',
-	21: '#FFFFFF',
-	22: '#FFFFFF',
-	23: '#FFFFFF',
-	24: '#FFFFFF',
+	0: "#FF3333",
+	1: "#FF4444",
+	2: "#FF5555",
+	3: "#FF6666",
+	4: "#FF7777",
+	5: "#FF8888",
+	6: "#FF9999",
+	7: "#FFAAAA",
+	8: "#FFBBBB",
+	9: "#FFCCCC",
+	10: "#FFDDDD",
+	11: "#FFEEEE",
+	12: "#FFFFFF",
+	13: "#FFFFFF",
+	14: "#FFFFFF",
+	15: "#FFFFFF",
+	16: "#FFFFFF",
+	17: "#FFFFFF",
+	18: "#FFFFFF",
+	19: "#FFFFFF",
+	20: "#FFFFFF",
+	21: "#FFFFFF",
+	22: "#FFFFFF",
+	23: "#FFFFFF",
+	24: "#FFFFFF",
 }
 
 DAY_IN_SECONDS = 86400
 HOUR_IN_SECONDS = 3600
 MINUTE_IN_SECONDS = 60
+PT_TO_GMT_TIME_DIFFERENCE_IN_SECONDS = 28800
 
 # ---------------------------------------------------------------------------- #
 #                                    HELPERS                                   #
 # ---------------------------------------------------------------------------- #
 
-# TODO: REFACTOR INTO HELPER FUNCTIONS
+def get_showtime_color(movie_start_time, current_time):
+	start_time_hour = time.parse_time(movie_start_time, "15:04:05").hour
+	hours_until_movie = int(start_time_hour) - current_time.hour
 
-# def find_hours_until_movie():
+	return SHOWTIME_COLORS.get(hours_until_movie, "#222222")
 
-# def fetch_showtimes():
+def calculate_time_query_params(current_time):
+	hours_to_seconds = int(current_time.hour) * HOUR_IN_SECONDS
+	minutes_to_seconds = int(current_time.minute) * MINUTE_IN_SECONDS
+	seconds = int(current_time.second)
 
-# def calculate_unix_time_period():
+	seconds_since_midnight = hours_to_seconds + minutes_to_seconds + seconds
 
-# def build_showtimes_url(current_time):
+	# The AmCin API uses the GMT time zone. It doesn't base the showtime window strictly on the Unix timestamp params
+	# e.g. 12:01AM - 11:59PM won't work even though it should be capturing basically the same movie showtimes as below.
+	# In other words, its flexibility only extends to capturing a whole day's showtimes.
+	# In accordance with that, the time window used here is 12:00AM GMT - 11:59PM GMT.
+	beginning_of_current_day_gmt_unix = current_time.unix - seconds_since_midnight - PT_TO_GMT_TIME_DIFFERENCE_IN_SECONDS
+	end_of_current_day_gmt_unix = current_time.unix - seconds_since_midnight - PT_TO_GMT_TIME_DIFFERENCE_IN_SECONDS + DAY_IN_SECONDS - 1
 
-# def create_time_query_params():
+	return [beginning_of_current_day_gmt_unix, end_of_current_day_gmt_unix]
 
 def show_error_fetching_data():
-	print('Error fetching data')
+	print("Error fetching data")
 	return render.Root(
 		child = render.Column(
 			children = [
@@ -144,35 +123,23 @@ def main(config):
 	timezone = config.get("timezone") or "America/Los_Angeles"
 	current_time = time.now().in_location(timezone)
 
-	hours_to_seconds = int(current_time.hour) * HOUR_IN_SECONDS
-	minutes_to_seconds = int(current_time.minute) * MINUTE_IN_SECONDS
-	seconds = int(current_time.second)
-
-	seconds_since_midnight = hours_to_seconds + minutes_to_seconds + seconds
-
-	# The AmCin API requires you to query the current day's showtimes using the previous day's Unix timestamps for some reason
-	# TODO: Rename variables?
-	beginning_of_current_day_unix = current_time.unix - seconds_since_midnight - DAY_IN_SECONDS
-	end_of_current_day_unix = current_time.unix - seconds_since_midnight
+	beginning_of_current_day_unix, end_of_current_day_unix = calculate_time_query_params(current_time)
 
 	showtimes_url = CINEMATHEQUE_SHOWTIMES_URL.format(
 		start_time = str(beginning_of_current_day_unix),
 		end_time = str(end_of_current_day_unix)
 	)
 
-	# ------------------------------------------------ #
-	#              FETCHING SHOWTIMES DATA             #
-	# ------------------------------------------------ #
 	res = http.get(showtimes_url)
 
 	if res.status_code != 200:
 		return show_error_fetching_data()
 	
 	all_locations_movie_list = res.json()["hits"]
+	unsorted_movie_list = [movie for movie in all_locations_movie_list if local_theater_code in movie["event_location"]]
 
-	unsorted_movie_list = [movie for movie in all_locations_movie_list if local_theater_code in movie['event_location']]
 	# Sort movie list by showtime and truncate (the device can only display four showtimes before running out of screen space)
-	movie_list = sorted(unsorted_movie_list, key=lambda x: x['event_start_time'])[:4]
+	movie_list = sorted(unsorted_movie_list, key=lambda x: x["event_start_time"])[:4]
 
 	return render.Root(
 		child = render.Stack(
@@ -186,7 +153,7 @@ def main(config):
 							children = [
 								render.Marquee(
 									width = 45,
-									child = render.Text(movie['title'], font = "tom-thumb", color = "#89ACD4"),
+									child = render.Text(movie["title"], font = "tom-thumb", color = "#89ACD4"),
 									offset_start = 0,
 									offset_end = 0,
 									align = "start"
@@ -199,12 +166,9 @@ def main(config):
 							cross_align = "end",
 							children = [
 								render.Text(
-									time.parse_time(movie['event_start_time'], "15:04:05").format("3:04"),
+									time.parse_time(movie["event_start_time"], "15:04:05").format("3:04"),
 									font = "tom-thumb",
-									color = SHOWTIME_COLORS.get(
-										(int(time.parse_time(movie['event_start_time'], "15:04:05").hour) - current_time.hour),
-										"#222222"
-									)
+									color = get_showtime_color(movie["event_start_time"], current_time)
 								) for movie in movie_list
 							]
 						)
