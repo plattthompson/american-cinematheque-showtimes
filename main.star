@@ -70,7 +70,6 @@ def calculate_time_query_params(current_time):
 	hours_to_seconds = int(current_time.hour) * HOUR_IN_SECONDS
 	minutes_to_seconds = int(current_time.minute) * MINUTE_IN_SECONDS
 	seconds = int(current_time.second)
-
 	seconds_since_midnight = hours_to_seconds + minutes_to_seconds + seconds
 
 	# The AmCin API uses the GMT time zone. It doesn't base the showtime window strictly on the Unix timestamp params
@@ -130,12 +129,15 @@ def main(config):
 		end_time = str(end_of_current_day_unix)
 	)
 
-	res = http.get(showtimes_url)
+	all_locations_movie_list = cache.get("showtimes_data")
 
-	if res.status_code != 200:
-		return show_error_fetching_data()
-	
-	all_locations_movie_list = res.json()["hits"]
+	if all_locations_movie_list == None:
+		res = http.get(showtimes_url)
+		if res.status_code != 200:
+			return show_error_fetching_data()
+		all_locations_movie_list = res.json()["hits"]
+		cache.set("showtimes_data", all_locations_movie_list, ttl_seconds = HOUR_IN_SECONDS)
+
 	unsorted_movie_list = [movie for movie in all_locations_movie_list if local_theater_code in movie["event_location"]]
 
 	# Sort movie list by showtime and truncate (the device can only display four showtimes before running out of screen space)
