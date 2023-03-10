@@ -1,9 +1,10 @@
+load("cache.star", "cache")
+load("encoding/base64.star", "base64")
+load("encoding/json.star", "json")
+load("http.star", "http")
 load("render.star", "render")
 load("schema.star", "schema")
 load("time.star", "time")
-load("http.star", "http")
-load("cache.star", "cache")
-load("encoding/base64.star", "base64")
 
 # ---------------------------------------------------------------------------- #
 #                                   CONSTANTS                                  #
@@ -136,7 +137,7 @@ def main(config):
 		if res.status_code != 200:
 			return show_error_fetching_data()
 		all_locations_movie_list = res.json()["hits"]
-		cache.set("showtimes_data", all_locations_movie_list, ttl_seconds = HOUR_IN_SECONDS)
+		cache.set("showtimes_data", json.encode(all_locations_movie_list), ttl_seconds = HOUR_IN_SECONDS)
 
 	unsorted_movie_list = [movie for movie in all_locations_movie_list if local_theater_code in movie["event_location"]]
 
