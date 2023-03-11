@@ -25,19 +25,18 @@ THEATER_CODES = {
 # This also gives a more implicit understanding of AM and PM since the times are in twelve hour format
 # and there's no room for an AM/PM suffix.
 SHOWTIME_COLORS = {
-	0: "#FF3333",
-	1: "#FF4444",
-	2: "#FF5555",
-	3: "#FF6666",
-	4: "#FF7777",
-	5: "#FF8888",
-	6: "#FF9999",
-	7: "#FFAAAA",
-	8: "#FFBBBB",
-	9: "#FFCCCC",
-	10: "#FFDDDD",
-	11: "#FFEEEE",
-	12: "#FFFFFF",
+	1: "#FF3333",
+	2: "#FF4444",
+	3: "#FF5555",
+	4: "#FF6666",
+	5: "#FF7777",
+	6: "#FF8888",
+	7: "#FF9999",
+	8: "#FFAAAA",
+	9: "#FFBBBB",
+	10: "#FFCCCC",
+	11: "#FFDDDD",
+	12: "#FFEEEE",
 	13: "#FFFFFF",
 	14: "#FFFFFF",
 	15: "#FFFFFF",
@@ -138,6 +137,8 @@ def main(config):
 			return show_error_fetching_data()
 		all_locations_movie_list = res.json()["hits"]
 		cache.set("showtimes_data", json.encode(all_locations_movie_list), ttl_seconds = HOUR_IN_SECONDS)
+	else:
+		all_locations_movie_list = json.decode(all_locations_movie_list)
 
 	unsorted_movie_list = [movie for movie in all_locations_movie_list if local_theater_code in movie["event_location"]]
 
